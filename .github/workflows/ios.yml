@@ -101,11 +101,24 @@ jobs:
 
       - name: Install Provisioning Profile
         env:
-          PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE }}
-          PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
+          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
         run: |
+          set -euo pipefail
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_NAME.mobileprovision
+          PROFILE_PATH=~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          # Support base64 or raw .mobileprovision in the secret
+          if echo "$PROVISIONING_PROFILE" | base64 -d > "$PROFILE_PATH" 2>/dev/null; then
+            echo "Decoded base64 provisioning profile to $PROFILE_PATH"
+          else
+            echo "$PROVISIONING_PROFILE" > "$PROFILE_PATH"
+            echo "Wrote raw provisioning profile to $PROFILE_PATH"
+          fi
+          /usr/bin/security cms -D -i "$PROFILE_PATH" > profile.plist
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' profile.plist)
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+          rm -f profile.plist
 
       - name: Signing diagnostics (safe)
         run: |
@@ -128,7 +141,6 @@ jobs:
         env:
           CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
-          PROVISIONING_PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
         run: |
           set -euo pipefail
           mkdir -p build
@@ -140,7 +152,8 @@ jobs:
               CODE_SIGN_STYLE=Manual \
               DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
               CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-              PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE_NAME" \
+              PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+              PROVISIONING_PROFILE="$PROFILE_UUID" \
               clean archive | xcpretty
           else
             xcodebuild -project NeoX2.xcodeproj \
@@ -150,14 +163,13 @@ jobs:
               CODE_SIGN_STYLE=Manual \
               DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
               CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-              PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE_NAME" \
+              PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+              PROVISIONING_PROFILE="$PROFILE_UUID" \
               clean archive
           fi
           test -d "$PWD/build/NeoX2.xcarchive"
 
       - name: Export IPA
-        env:
-          PROVISIONING_PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
         run: |
           set -euo pipefail
           cat > ExportOptions.plist <<PLIST
@@ -166,7 +178,7 @@ jobs:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>app-store</string>
+            <string>app-store-connect</string>
             <key>signingStyle</key>
             <string>manual</string>
             <key>provisioningProfiles</key>
@@ -174,12 +186,14 @@ jobs:
               <key>
                 ${BUNDLE_ID}
               </key>
-              <string>${PROVISIONING_PROFILE_NAME}</string>
+              <string>${PROFILE_UUID}</string>
             </dict>
             <key>uploadSymbols</key>
             <true/>
             <key>compileBitcode</key>
             <false/>
+            <key>teamID</key>
+            <string>${DEVELOPMENT_TEAM}</string>
           </dict>
           </plist>
           PLIST
