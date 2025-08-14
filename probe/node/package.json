@@ -1,0 +1,14 @@
+{
+  "name": "neox2-realm-probe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal realm probe server for neoX2 (Node.js)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+

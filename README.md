@@ -24,6 +24,16 @@ If you can obtain Apple’s HotspotHelper entitlement for your bundle ID, we can
 - Add the private entitlement `com.apple.developer.networking.HotspotHelper` to the app (Apple-approved builds only).
 - Implement realm parsing in `HotspotHelperRealmDetector` (currently a stub). When the detected realm contains `sony.net`, the ad will switch to the AI-styled SONY view.
 
+### Realm probe endpoint (server-assisted)
+If HotspotHelper isn’t available or you want a robust signal, configure an internal probe endpoint that’s only reachable when the device is connected via the Passpoint network.
+
+- Configure the endpoint URL under `NeoX2/Resources/Info.plist` key `RealmProbeURL`.
+- Expected response formats (either):
+  - Plain text: `sony.net`
+  - JSON: `{ "realm": "sony.net" }`
+- The app calls the probe when on Wi‑Fi; if the response contains `sony.net`, the SONY ad activates.
+- Recommended deployment: host inside the Passpoint network (or DNS-resolve internally) so it’s only reachable on that network.
+
 ## Project structure
 - `NeoX2.xcodeproj` – Xcode project with a single SwiftUI app target
 - `NeoX2/` – app sources
@@ -58,6 +68,23 @@ Push a tag like `v1.0.0` to trigger the release job.
 
 ## Profile installation guide
 See the in-app "Profile Setup" screen. It provides step-by-step guidance inspired by Cloud4Wi’s Passpoint portal documentation and opens `https://profiles.acloudradius.net` to download the profile, with a shortcut to app settings for granting Location access.
+
+## Probe examples
+Two minimal reference implementations are provided under `probe/` to help host a realm endpoint inside your Passpoint network (responding only when the device is connected via that network).
+
+- Node.js: `probe/node`
+  - Requirements: Node.js 18+
+  - Run: `cd probe/node && REALM=sony.net PORT=3000 npm start`
+  - Endpoints:
+    - `/realm` returns plain text
+    - `/realm.json` returns JSON `{ "realm": "sony.net" }`
+
+- Go: `probe/go`
+  - Requirements: Go 1.20+
+  - Run: `cd probe/go && REALM=sony.net PORT=3000 go run .`
+  - Endpoints mirror the Node.js version.
+
+Point the app’s `RealmProbeURL` (in `NeoX2/Resources/Info.plist`) to one of these endpoints, ideally reachable only within the Passpoint network (e.g., internal DNS or firewall).
 
 ## Repository creation
 Create the GitHub repository named `acc-neox2` and push this project:
