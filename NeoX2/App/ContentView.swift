@@ -5,7 +5,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
         VStack(spacing: 24) {
             Spacer(minLength: 24)
 
@@ -42,9 +42,7 @@ struct ContentView: View {
             .tint(.blue)
             .padding(.horizontal)
 
-            NavigationLink {
-                ProfileSetupView()
-            } label: {
+            NavigationLink(destination: ProfileSetupView()) {
                 Label("How to install the profile", systemImage: "questionmark.circle")
             }
             .padding(.horizontal)
@@ -76,10 +74,8 @@ struct ContentView: View {
             Spacer()
         }
         .navigationTitle("neoX2")
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                appState.appBecameActive()
-            }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active { appState.appBecameActive() }
         }
         }
     }
@@ -144,7 +140,8 @@ struct AdSonyView: View {
     }
 }
 
-#Preview {
-    ContentView()
-        .environmentObject(AppState())
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView().environmentObject(AppState())
+    }
 }

@@ -69,7 +69,8 @@ private struct StepView: View {
     }
 }
 
-#Preview {
-    NavigationStack { ProfileSetupView() }
+struct ProfileSetupView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView { ProfileSetupView() }
+    }
 }
-
