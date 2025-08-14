@@ -1,0 +1,156 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1F1A00022000000100000001 /* NeoX2App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F1A00012000000100000001 /* NeoX2App.swift */; };
+		1F1A00042000000100000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F1A00032000000100000001 /* ContentView.swift */; };
+ 		1F1A00072000000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1F1A00062000000100000001 /* Assets.xcassets */; };
+ 		1F1A000A2000000100000001 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F1A00092000000100000001 /* AppState.swift */; };
+ 		1F1A000D2000000100000001 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F1A000C2000000100000001 /* LocationManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+ 		1F19FFF92000000100000001 /* NeoX2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NeoX2.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1F1A00012000000100000001 /* NeoX2App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeoX2App.swift; sourceTree = "<group>"; };
+ 		1F1A00032000000100000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+ 		1F1A00062000000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+ 		1F1A00082000000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+ 		1F1A00092000000100000001 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+ 		1F1A000B2000000100000001 /* NeoX2.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NeoX2.entitlements; sourceTree = "<group>"; };
+ 		1F1A000C2000000100000001 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+ 		1F19FFF62000000100000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+ 		1F19FFEF2000000100000001 = {isa = PBXGroup; children = (
+ 			1F1A000E2000000100000001 /* NeoX2 */,
+ 			1F19FFFA2000000100000001 /* Products */,
+ 		); sourceTree = "<group>"; };
+ 		1F19FFFA2000000100000001 /* Products */ = {isa = PBXGroup; children = (
+ 			1F19FFF92000000100000001 /* NeoX2.app */,
+ 		); name = Products; sourceTree = "<group>"; };
+ 		1F1A000E2000000100000001 /* NeoX2 */ = {isa = PBXGroup; children = (
+ 			1F1A000F2000000100000001 /* App */,
+ 			1F1A00102000000100000001 /* Resources */,
+ 		); path = NeoX2; sourceTree = "<group>"; };
+ 		1F1A000F2000000100000001 /* App */ = {isa = PBXGroup; children = (
+ 			1F1A00012000000100000001 /* NeoX2App.swift */,
+ 			1F1A00032000000100000001 /* ContentView.swift */,
+ 			1F1A00092000000100000001 /* AppState.swift */,
+ 			1F1A000C2000000100000001 /* LocationManager.swift */,
+ 		); path = App; sourceTree = "<group>"; };
+ 		1F1A00102000000100000001 /* Resources */ = {isa = PBXGroup; children = (
+ 			1F1A00062000000100000001 /* Assets.xcassets */,
+ 			1F1A000B2000000100000001 /* NeoX2.entitlements */,
+ 			1F1A00082000000100000001 /* Info.plist */,
+ 		); path = Resources; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+ 		1F19FFF82000000100000001 /* NeoX2 */ = {isa = PBXNativeTarget; buildConfigurationList = 1F1A00192000000100000001 /* Build configuration list for PBXNativeTarget "NeoX2" */; buildPhases = (
+ 			1F19FFF52000000100000001 /* Sources */,
+ 			1F19FFF62000000100000001 /* Frameworks */,
+ 			1F19FFF72000000100000001 /* Resources */,
+ 		); buildRules = ( ); dependencies = ( ); name = NeoX2; productName = NeoX2; productReference = 1F19FFF92000000100000001 /* NeoX2.app */; productType = "com.apple.product-type.application"; };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+ 		1F19FFF02000000100000001 /* Project object */ = {isa = PBXProject; attributes = { LastSwiftUpdateCheck = 1500; LastUpgradeCheck = 1500; TargetAttributes = { 1F19FFF82000000100000001 = { CreatedOnToolsVersion = 15.0; }; }; }; buildConfigurationList = 1F19FFF32000000100000001 /* Build configuration list for PBXProject "NeoX2" */; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = ( en, ); mainGroup = 1F19FFEF2000000100000001; productRefGroup = 1F19FFFA2000000100000001 /* Products */; projectDirPath = ""; projectRoot = ""; targets = ( 1F19FFF82000000100000001 /* NeoX2 */, ); };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+ 		1F19FFF72000000100000001 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( 1F1A00072000000100000001 /* Assets.xcassets in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+ 		1F19FFF52000000100000001 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+ 			1F1A00042000000100000001 /* ContentView.swift in Sources */,
+ 			1F1A000A2000000100000001 /* AppState.swift in Sources */,
+ 			1F1A000D2000000100000001 /* LocationManager.swift in Sources */,
+ 			1F1A00022000000100000001 /* NeoX2App.swift in Sources */,
+ 		); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+ 		1F19FFF42000000100000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+ 			ALWAYS_SEARCH_USER_PATHS = NO;
+ 			CLANG_ANALYZER_NONNULL = YES;
+ 			CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+ 			CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+ 			CLANG_ENABLE_MODULES = YES;
+ 			CLANG_ENABLE_OBJC_ARC = YES;
+ 			CLANG_TREAT_WARNINGS_AS_ERRORS = NO;
+ 			CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+ 			CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+ 			CODE_SIGN_STYLE = Automatic;
+ 			COPY_PHASE_STRIP = NO;
+ 			CURRENT_PROJECT_VERSION = 1;
+ 			DEAD_CODE_STRIPPING = YES;
+ 			DEBUG_INFORMATION_FORMAT = dwarf;
+ 			ENABLE_STRICT_OBJC_MSGSEND = YES;
+ 			ENABLE_TESTABILITY = YES;
+ 			GCC_C_LANGUAGE_STANDARD = gnu17;
+ 			INFOPLIST_FILE = NeoX2/Resources/Info.plist;
+ 			IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+ 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+ 			MARKETING_VERSION = 1.0.0;
+ 			MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+ 			PRODUCT_BUNDLE_IDENTIFIER = com.acloudradius.neox2;
+ 			PRODUCT_NAME = "$(TARGET_NAME)";
+ 			SDKROOT = iphoneos;
+ 			SWIFT_EMIT_LOC_STRINGS = YES;
+ 			SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+ 			SWIFT_VERSION = 5.0;
+ 			TARGETED_DEVICE_FAMILY = "1,2";
+ 			CODE_SIGN_ENTITLEMENTS = NeoX2/Resources/NeoX2.entitlements;
+ 		}; name = Debug; };
+ 		1F19FFF52000000100000001 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+ 			ALWAYS_SEARCH_USER_PATHS = NO;
+ 			CLANG_ANALYZER_NONNULL = YES;
+ 			CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+ 			CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+ 			CLANG_ENABLE_MODULES = YES;
+ 			CLANG_ENABLE_OBJC_ARC = YES;
+ 			CLANG_TREAT_WARNINGS_AS_ERRORS = NO;
+ 			CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+ 			CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+ 			CODE_SIGN_STYLE = Automatic;
+ 			COPY_PHASE_STRIP = NO;
+ 			CURRENT_PROJECT_VERSION = 1;
+ 			DEAD_CODE_STRIPPING = YES;
+ 			DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+ 			ENABLE_NS_ASSERTIONS = NO;
+ 			ENABLE_STRICT_OBJC_MSGSEND = YES;
+ 			GCC_C_LANGUAGE_STANDARD = gnu17;
+ 			INFOPLIST_FILE = NeoX2/Resources/Info.plist;
+ 			IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+ 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+ 			MARKETING_VERSION = 1.0.0;
+ 			PRODUCT_BUNDLE_IDENTIFIER = com.acloudradius.neox2;
+ 			PRODUCT_NAME = "$(TARGET_NAME)";
+ 			SDKROOT = iphoneos;
+ 			SWIFT_EMIT_LOC_STRINGS = YES;
+ 			SWIFT_VERSION = 5.0;
+ 			TARGETED_DEVICE_FAMILY = "1,2";
+ 			CODE_SIGN_ENTITLEMENTS = NeoX2/Resources/NeoX2.entitlements;
+ 		}; name = Release; };
+ 		1F1A001A2000000100000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = { }; name = Debug; };
+ 		1F1A001B2000000100000001 /* Release */ = {isa = XCBuildConfiguration; buildSettings = { }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+ 		1F19FFF32000000100000001 /* Build configuration list for PBXProject "NeoX2" */ = {isa = XCConfigurationList; buildConfigurations = ( 1F1A001A2000000100000001 /* Debug */, 1F1A001B2000000100000001 /* Release */, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+ 		1F1A00192000000100000001 /* Build configuration list for PBXNativeTarget "NeoX2" */ = {isa = XCConfigurationList; buildConfigurations = ( 1F19FFF42000000100000001 /* Debug */, 1F19FFF52000000100000001 /* Release */, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+};
+	rootObject = 1F19FFF02000000100000001 /* Project object */;
+}
+

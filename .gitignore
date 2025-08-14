@@ -1,0 +1,25 @@
+# Xcode
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# SwiftPM
+.build/
+
+# Cocoapods (not used, but safe)
+Pods/
+*.xcworkspace
+
+# Fastlane
+fastlane/Preview.html
+fastlane/report.xml
+fastlane/screenshots
+
+# Provisioning
+*.mobileprovision
+*.provisionprofile
+*.p12
+AuthKey_*.p8
+

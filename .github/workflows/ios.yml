@@ -1,0 +1,113 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s "/Applications/Xcode_15.4.app/Contents/Developer" || sudo xcode-select -s "/Applications/Xcode.app/Contents/Developer"
+
+      - name: Build (Simulator)
+        run: |
+          xcodebuild -project NeoX2.xcodeproj \
+            -scheme NeoX2 \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -configuration Debug \
+            build | xcpretty || true
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: macos-14
+    needs: [ build ]
+    env:
+      BUNDLE_ID: com.acloudradius.neox2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s "/Applications/Xcode_15.4.app/Contents/Developer" || sudo xcode-select -s "/Applications/Xcode.app/Contents/Developer"
+
+      - name: Create Keychain and Import Certs
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_NAME=build.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security default-keychain -s "$KEYCHAIN_NAME"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
+          echo "$P12_BASE64" | base64 --decode > signing.p12
+          security import signing.p12 -k "$KEYCHAIN_NAME" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security find-identity -v -p codesigning
+
+      - name: Install Provisioning Profile
+        env:
+          PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE }}
+          PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_NAME.mobileprovision
+
+      - name: Archive
+        env:
+          CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+          PROVISIONING_PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
+        run: |
+          xcodebuild -project NeoX2.xcodeproj \
+            -scheme NeoX2 \
+            -configuration Release \
+            -archivePath $PWD/build/NeoX2.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE_NAME" \
+            clean archive | xcpretty || true
+
+      - name: Export IPA
+        env:
+          PROVISIONING_PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
+        run: |
+          cat > ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>
+                ${BUNDLE_ID}
+              </key>
+              <string>${PROVISIONING_PROFILE_NAME}</string>
+            </dict>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath $PWD/build/NeoX2.xcarchive -exportPath $PWD/build -exportOptionsPlist ExportOptions.plist | xcpretty || true
+
+      - name: Upload to TestFlight (Transporter)
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          xcrun iTMSTransporter -m upload -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD" -assetFile build/NeoX2.ipa -v informational
