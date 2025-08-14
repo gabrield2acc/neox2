@@ -19,6 +19,11 @@ An iOS SwiftUI app that helps users install a Passpoint/Hotspot 2.0 profile from
 
 If you can obtain Apple’s HotspotHelper entitlement for your bundle ID, we can replace the heuristic with a direct ANQP/NAI realm read.
 
+### Enabling realm-based switching (optional, requires entitlement)
+- Define the Swift flag `HOTSPOT_HELPER_ENABLED` for the target (Build Settings > Other Swift Flags: `-D HOTSPOT_HELPER_ENABLED`).
+- Add the private entitlement `com.apple.developer.networking.HotspotHelper` to the app (Apple-approved builds only).
+- Implement realm parsing in `HotspotHelperRealmDetector` (currently a stub). When the detected realm contains `sony.net`, the ad will switch to the AI-styled SONY view.
+
 ## Project structure
 - `NeoX2.xcodeproj` – Xcode project with a single SwiftUI app target
 - `NeoX2/` – app sources
