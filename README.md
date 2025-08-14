@@ -63,6 +63,11 @@ Configure these repo secrets:
 
 Push a tag like `v1.0.0` to trigger the release job.
 
+Signing requirements
+- Bundle ID: `net.acloudradius.neox2`
+- Provisioning profile: App Store profile for `net.acloudradius.neox2` on your team
+- Code signing identity (matches your imported distribution certificate)
+
 ## Profile installation guide
 See the in-app "Profile Setup" screen. It provides step-by-step guidance inspired by Cloud4Wi’s Passpoint portal documentation and opens `https://profiles.acloudradius.net` to download the profile, with a shortcut to app settings for granting Location access.
 

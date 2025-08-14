@@ -32,7 +32,7 @@ jobs:
     runs-on: macos-14
     needs: [ build ]
     env:
-      BUNDLE_ID: com.acloudradius.neox2
+      BUNDLE_ID: net.acloudradius.neox2
     steps:
       - uses: actions/checkout@v4
 
