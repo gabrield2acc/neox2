@@ -1,0 +1,35 @@
+name: NeoX2
+options:
+  minimumXcodeGenVersion: 2.38.0
+  deploymentTarget:
+    iOS: 15.0
+  createIntermediateGroups: true
+configs:
+  Debug: debug
+  Release: release
+settings:
+  BASE_SDK: iphoneos
+  SWIFT_VERSION: 5.0
+packages: {}
+targets:
+  NeoX2:
+    type: application
+    platform: iOS
+    sources:
+      - path: NeoX2/App
+      - path: NeoX2/Resources
+        excludes:
+          - "**/*.entitlements" # referenced separately
+    info:
+      path: NeoX2/Resources/Info.plist
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: net.acloudradius.neox2
+      CODE_SIGN_ENTITLEMENTS: NeoX2/Resources/NeoX2.entitlements
+      TARGETED_DEVICE_FAMILY: "1,2"
+      MARKETING_VERSION: 1.0.0
+      CURRENT_PROJECT_VERSION: 1
+    scheme:
+      testTargets: []
+    entitlements:
+      path: NeoX2/Resources/NeoX2.entitlements
+
