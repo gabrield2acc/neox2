@@ -116,8 +116,10 @@ jobs:
           /usr/bin/security cms -D -i "$PROFILE_PATH" > profile.plist
           PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' profile.plist)
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)
+          TEAM_ID=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist)
           echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+          echo "TEAM_ID=$TEAM_ID" >> $GITHUB_ENV
           rm -f profile.plist
 
       - name: Signing diagnostics (safe)
@@ -192,8 +194,6 @@ jobs:
             <true/>
             <key>compileBitcode</key>
             <false/>
-            <key>teamID</key>
-            <string>${DEVELOPMENT_TEAM}</string>
           </dict>
           </plist>
           PLIST
