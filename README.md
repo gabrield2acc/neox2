@@ -86,6 +86,35 @@ Two minimal reference implementations are provided under `probe/` to help host a
 
 Point the app’s `RealmProbeURL` (in `NeoX2/Resources/Info.plist`) to one of these endpoints, ideally reachable only within the Passpoint network (e.g., internal DNS or firewall).
 
+### Docker
+- Node.js
+  - Build: `docker build -t neox2-probe-node:latest probe/node`
+  - Run: `docker run --rm -e REALM=sony.net -e PORT=3000 -p 3000:3000 neox2-probe-node:latest`
+- Go
+  - Build: `docker build -t neox2-probe-go:latest probe/go`
+  - Run: `docker run --rm -e REALM=sony.net -e PORT=3000 -p 3000:3000 neox2-probe-go:latest`
+
+### systemd
+Use one of the provided service units and a shared env file:
+
+1. Copy and configure environment file
+   - `sudo cp probe/systemd/.env.example /etc/neox2-realm-probe.env`
+   - `sudoedit /etc/neox2-realm-probe.env` (set REALM, PORT)
+
+2. Node.js service
+   - Install Node.js (e.g., Node 18+)
+   - Place sources at `/opt/neox2-realm-probe-node/` (server.js + package.json)
+   - `sudo cp probe/node/systemd/neox2-realm-probe-node.service /etc/systemd/system/`
+   - `sudo systemctl daemon-reload && sudo systemctl enable --now neox2-realm-probe-node`
+
+3. Go service
+   - Build binary and place at `/opt/neox2-realm-probe-go/neox2-realm-probe-go`
+   - `sudo cp probe/go/systemd/neox2-realm-probe-go.service /etc/systemd/system/`
+   - `sudo systemctl daemon-reload && sudo systemctl enable --now neox2-realm-probe-go`
+
+4. Verify
+   - `curl http://localhost:3000/realm` should print the realm string
+
 ## Repository creation
 Create the GitHub repository named `acc-neox2` and push this project:
 

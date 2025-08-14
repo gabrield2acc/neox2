@@ -1,0 +1,17 @@
+[Unit]
+Description=neoX2 Realm Probe (Go)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/neox2-realm-probe.env
+ExecStart=/opt/neox2-realm-probe-go/neox2-realm-probe-go
+Restart=on-failure
+RestartSec=3
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target
+
