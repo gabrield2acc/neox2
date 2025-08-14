@@ -43,7 +43,7 @@ jobs:
         uses: apple-actions/import-codesign-certs@v2
         with:
           keychain: build.keychain-db
-          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+          keychain-password: temporary_keychain_password_${{ github.run_id }}
           p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
           p12-password: ${{ secrets.CERTIFICATE_PASSWORD }}
 
@@ -99,6 +99,26 @@ jobs:
           </plist>
           PLIST
           xcodebuild -exportArchive -archivePath $PWD/build/NeoX2.xcarchive -exportPath $PWD/build -exportOptionsPlist ExportOptions.plist | xcpretty || true
+
+      - name: Setup App Store Connect API key (optional)
+        env:
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+          APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+        run: |
+          if [[ -n "$APPLE_KEY_ID" && -n "$APPLE_ISSUER_ID" && -n "$APPLE_PRIVATE_KEY" ]]; then
+            mkdir -p ~/.appstoreconnect/private_keys
+            FILE=~/.appstoreconnect/private_keys/AuthKey_${APPLE_KEY_ID}.p8
+            if echo "$APPLE_PRIVATE_KEY" | base64 -d > "$FILE" 2>/dev/null; then
+              echo "Wrote base64-decoded API private key to $FILE"
+            else
+              echo "$APPLE_PRIVATE_KEY" > "$FILE"
+              echo "Wrote raw API private key to $FILE"
+            fi
+            chmod 600 "$FILE"
+          else
+            echo "No App Store Connect API key secrets provided; will upload using Apple ID."
+          fi
       - name: Verify IPA exists
         run: |
           ls -lah build || true
@@ -108,15 +128,15 @@ jobs:
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
         run: |
           set -e
           echo "Transporter version:" || true
           xcrun iTMSTransporter -version || true
-          if [[ -n "$ASC_API_KEY_ID" && -n "$ASC_API_ISSUER_ID" ]]; then
+          if [[ -n "$APPLE_KEY_ID" && -n "$APPLE_ISSUER_ID" ]]; then
             echo "Using App Store Connect API Key for upload via Transporter"
-            xcrun iTMSTransporter -m upload -apiKey "$ASC_API_KEY_ID" -apiIssuer "$ASC_API_ISSUER_ID" -assetFile build/NeoX2.ipa -v informational
+            xcrun iTMSTransporter -m upload -apiKey "$APPLE_KEY_ID" -apiIssuer "$APPLE_ISSUER_ID" -assetFile build/NeoX2.ipa -v informational
           else
             echo "Using Apple ID + app-specific password for upload via Transporter"
             if ! xcrun iTMSTransporter -m upload -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD" -assetFile build/NeoX2.ipa -v informational; then
