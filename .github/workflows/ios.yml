@@ -55,6 +55,23 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "$PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_NAME.mobileprovision
 
+      - name: Signing diagnostics (safe)
+        run: |
+          echo "Xcode version:" && xcodebuild -version
+          echo "Codesigning identities (hash masked):"
+          security find-identity -v -p codesigning 2>/dev/null | sed -E 's/[A-F0-9]{40}/<SHA1>/g' || true
+          echo "Installed provisioning profiles:"
+          for f in ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision; do
+            [[ -e "$f" ]] || continue
+            echo "--- $f ---"
+            /usr/bin/security cms -D -i "$f" > profile.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c 'Print :Name' profile.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist 2>/dev/null || true
+            rm -f profile.plist
+          done
+
       - name: Archive
         env:
           CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
@@ -136,11 +153,11 @@ jobs:
           xcrun iTMSTransporter -version || true
           if [[ -n "$APPLE_KEY_ID" && -n "$APPLE_ISSUER_ID" ]]; then
             echo "Using App Store Connect API Key for upload via Transporter"
-            xcrun iTMSTransporter -m upload -apiKey "$APPLE_KEY_ID" -apiIssuer "$APPLE_ISSUER_ID" -assetFile build/NeoX2.ipa -v informational
+            xcrun iTMSTransporter -m upload -apiKey "$APPLE_KEY_ID" -apiIssuer "$APPLE_ISSUER_ID" -assetFile build/NeoX2.ipa -v detailed -verbose
           else
             echo "Using Apple ID + app-specific password for upload via Transporter"
-            if ! xcrun iTMSTransporter -m upload -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD" -assetFile build/NeoX2.ipa -v informational; then
+            if ! xcrun iTMSTransporter -m upload -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD" -assetFile build/NeoX2.ipa -v detailed -verbose; then
               echo "Transporter upload failed; attempting legacy altool as fallback (deprecated)" >&2
-              xcrun altool --upload-app -f build/NeoX2.ipa -t ios -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD"
+              xcrun altool --upload-app --verbose -f build/NeoX2.ipa -t ios -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD"
             fi
           fi
