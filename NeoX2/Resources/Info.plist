@@ -42,6 +42,11 @@
     </array>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Used to read the current Wi‑Fi SSID to enable Passpoint UI.</string>
+    
+    <!-- Optional: Probe endpoint used to infer NAI realm while on Wi‑Fi.
+         Should be reachable only within the Passpoint network and return either
+         plain text (e.g. "sony.net") or JSON { "realm": "sony.net" } -->
+    <key>RealmProbeURL</key>
+    <string>https://probe.acloudradius.net/realm</string>
 </dict>
 </plist>
-

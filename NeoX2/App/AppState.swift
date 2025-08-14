@@ -10,6 +10,7 @@ final class AppState: NSObject, ObservableObject {
     @Published var adMode: AdMode = .defaultNeoX2
     @Published var isOnWiFi: Bool = false
     @Published var requiresLocationForSSID: Bool = false
+    @Published var probeRealm: String? = nil
 
     #if DEBUG
     @Published var debugSimulateRealm: Bool = false {
@@ -21,6 +22,7 @@ final class AppState: NSObject, ObservableObject {
     private let queue = DispatchQueue(label: "net.acloudradius.neox2.path")
     private var cancellables = Set<AnyCancellable>()
     private let locationManager = LocationManager()
+    private let probeClient = RealmProbeClient()
     private let realmDetector: RealmDetector = {
         #if HOTSPOT_HELPER_ENABLED
         return HotspotHelperRealmDetector()
@@ -67,6 +69,11 @@ final class AppState: NSObject, ObservableObject {
         monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
                 self?.isOnWiFi = path.usesInterfaceType(.wifi)
+                if path.usesInterfaceType(.wifi) {
+                    self?.triggerProbe()
+                } else {
+                    self?.probeRealm = nil
+                }
                 self?.updateAdMode()
             }
         }
@@ -96,6 +103,10 @@ final class AppState: NSObject, ObservableObject {
 
         // If we have a realm published, prefer that logic.
         if let realm = (realmDetector as AnyObject).value(forKey: "naiRealm") as? String, realm.lowercased().contains("sony.net") {
+            adMode = .sony
+            return
+        }
+        if let realm = probeRealm?.lowercased(), realm.contains("sony.net") {
             adMode = .sony
             return
         }
@@ -134,6 +145,21 @@ final class AppState: NSObject, ObservableObject {
             }
         }
         task.resume()
+    }
+
+    private func triggerProbe() {
+        guard let urlString = Bundle.main.object(forInfoDictionaryKey: "RealmProbeURL") as? String, !urlString.isEmpty else { return }
+        probeClient.fetchRealm(from: urlString) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let realm):
+                    self?.probeRealm = realm
+                case .failure:
+                    self?.probeRealm = nil
+                }
+                self?.updateAdMode()
+            }
+        }
     }
 
     private func currentSSID() -> String? {

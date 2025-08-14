@@ -25,14 +25,11 @@ If you can obtain Apple’s HotspotHelper entitlement for your bundle ID, we can
 - Implement realm parsing in `HotspotHelperRealmDetector` (currently a stub). When the detected realm contains `sony.net`, the ad will switch to the AI-styled SONY view.
 
 ### Realm probe endpoint (server-assisted)
-If HotspotHelper isn’t available or you want a robust signal, configure an internal probe endpoint that’s only reachable when the device is connected via the Passpoint network.
+The app is configured to query your hosted endpoint:
 
-- Configure the endpoint URL under `NeoX2/Resources/Info.plist` key `RealmProbeURL`.
-- Expected response formats (either):
-  - Plain text: `sony.net`
-  - JSON: `{ "realm": "sony.net" }`
-- The app calls the probe when on Wi‑Fi; if the response contains `sony.net`, the SONY ad activates.
-- Recommended deployment: host inside the Passpoint network (or DNS-resolve internally) so it’s only reachable on that network.
+- `RealmProbeURL` (Info.plist): `https://probe.acloudradius.net/realm`
+- Expected response: JSON `{ "realm": "sony.net" }` (plaintext `sony.net` is also supported)
+- When on Wi‑Fi, the app calls this probe and switches the ad to SONY if it returns `sony.net`.
 
 ## Project structure
 - `NeoX2.xcodeproj` – Xcode project with a single SwiftUI app target
@@ -69,51 +66,7 @@ Push a tag like `v1.0.0` to trigger the release job.
 ## Profile installation guide
 See the in-app "Profile Setup" screen. It provides step-by-step guidance inspired by Cloud4Wi’s Passpoint portal documentation and opens `https://profiles.acloudradius.net` to download the profile, with a shortcut to app settings for granting Location access.
 
-## Probe examples
-Two minimal reference implementations are provided under `probe/` to help host a realm endpoint inside your Passpoint network (responding only when the device is connected via that network).
-
-- Node.js: `probe/node`
-  - Requirements: Node.js 18+
-  - Run: `cd probe/node && REALM=sony.net PORT=3000 npm start`
-  - Endpoints:
-    - `/realm` returns plain text
-    - `/realm.json` returns JSON `{ "realm": "sony.net" }`
-
-- Go: `probe/go`
-  - Requirements: Go 1.20+
-  - Run: `cd probe/go && REALM=sony.net PORT=3000 go run .`
-  - Endpoints mirror the Node.js version.
-
-Point the app’s `RealmProbeURL` (in `NeoX2/Resources/Info.plist`) to one of these endpoints, ideally reachable only within the Passpoint network (e.g., internal DNS or firewall).
-
-### Docker
-- Node.js
-  - Build: `docker build -t neox2-probe-node:latest probe/node`
-  - Run: `docker run --rm -e REALM=sony.net -e PORT=3000 -p 3000:3000 neox2-probe-node:latest`
-- Go
-  - Build: `docker build -t neox2-probe-go:latest probe/go`
-  - Run: `docker run --rm -e REALM=sony.net -e PORT=3000 -p 3000:3000 neox2-probe-go:latest`
-
-### systemd
-Use one of the provided service units and a shared env file:
-
-1. Copy and configure environment file
-   - `sudo cp probe/systemd/.env.example /etc/neox2-realm-probe.env`
-   - `sudoedit /etc/neox2-realm-probe.env` (set REALM, PORT)
-
-2. Node.js service
-   - Install Node.js (e.g., Node 18+)
-   - Place sources at `/opt/neox2-realm-probe-node/` (server.js + package.json)
-   - `sudo cp probe/node/systemd/neox2-realm-probe-node.service /etc/systemd/system/`
-   - `sudo systemctl daemon-reload && sudo systemctl enable --now neox2-realm-probe-node`
-
-3. Go service
-   - Build binary and place at `/opt/neox2-realm-probe-go/neox2-realm-probe-go`
-   - `sudo cp probe/go/systemd/neox2-realm-probe-go.service /etc/systemd/system/`
-   - `sudo systemctl daemon-reload && sudo systemctl enable --now neox2-realm-probe-go`
-
-4. Verify
-   - `curl http://localhost:3000/realm` should print the realm string
+##
 
 ## Repository creation
 Create the GitHub repository named `acc-neox2` and push this project:
