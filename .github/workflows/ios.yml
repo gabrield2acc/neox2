@@ -99,10 +99,28 @@ jobs:
           </plist>
           PLIST
           xcodebuild -exportArchive -archivePath $PWD/build/NeoX2.xcarchive -exportPath $PWD/build -exportOptionsPlist ExportOptions.plist | xcpretty || true
+      - name: Verify IPA exists
+        run: |
+          ls -lah build || true
+          test -f build/NeoX2.ipa
 
-      - name: Upload to TestFlight (Transporter)
+      - name: Upload to TestFlight
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
         run: |
-          xcrun iTMSTransporter -m upload -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD" -assetFile build/NeoX2.ipa -v informational
+          set -e
+          echo "Transporter version:" || true
+          xcrun iTMSTransporter -version || true
+          if [[ -n "$ASC_API_KEY_ID" && -n "$ASC_API_ISSUER_ID" ]]; then
+            echo "Using App Store Connect API Key for upload via Transporter"
+            xcrun iTMSTransporter -m upload -apiKey "$ASC_API_KEY_ID" -apiIssuer "$ASC_API_ISSUER_ID" -assetFile build/NeoX2.ipa -v informational
+          else
+            echo "Using Apple ID + app-specific password for upload via Transporter"
+            if ! xcrun iTMSTransporter -m upload -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD" -assetFile build/NeoX2.ipa -v informational; then
+              echo "Transporter upload failed; attempting legacy altool as fallback (deprecated)" >&2
+              xcrun altool --upload-app -f build/NeoX2.ipa -t ios -u "$APPLE_ID" -p "$APPLE_APP_SPECIFIC_PASSWORD"
+            fi
+          fi
