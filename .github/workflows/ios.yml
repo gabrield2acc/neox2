@@ -194,7 +194,6 @@ jobs:
 
       - name: Export IPA
         env:
-          CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
           TEAM_ID: ${{ env.TEAM_ID }}
         run: |
           set -euo pipefail
@@ -212,10 +211,8 @@ jobs:
               <key>
                 ${BUNDLE_ID}
               </key>
-              <string>${PROFILE_NAME}</string>
+              <string>${PROFILE_UUID}</string>
             </dict>
-            <key>signingCertificate</key>
-            <string>${CODE_SIGN_IDENTITY}</string>
             <key>teamID</key>
             <string>${TEAM_ID:-}</string>
             <key>uploadSymbols</key>
@@ -225,6 +222,7 @@ jobs:
           </dict>
           </plist>
           PLIST
+          echo "ExportOptions.plist:" && cat ExportOptions.plist
           if command -v xcpretty >/dev/null 2>&1; then
             xcodebuild -exportArchive -archivePath "$PWD/build/NeoX2.xcarchive" -exportPath "$PWD/build" -exportOptionsPlist ExportOptions.plist | xcpretty
           else
