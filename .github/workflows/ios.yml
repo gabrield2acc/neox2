@@ -104,22 +104,25 @@ jobs:
           PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
         run: |
           set -euo pipefail
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          PROFILE_PATH=~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_DIR"
+          TMP_PROFILE="$PROFILE_DIR/profile.mobileprovision"
           # Support base64 or raw .mobileprovision in the secret
-          if echo "$PROVISIONING_PROFILE" | base64 -d > "$PROFILE_PATH" 2>/dev/null; then
+          if echo "$PROVISIONING_PROFILE" | base64 -d > "$TMP_PROFILE" 2>/dev/null; then
             echo "Decoded base64 provisioning profile to $PROFILE_PATH"
           else
-            echo "$PROVISIONING_PROFILE" > "$PROFILE_PATH"
+            echo "$PROVISIONING_PROFILE" > "$TMP_PROFILE"
             echo "Wrote raw provisioning profile to $PROFILE_PATH"
           fi
-          /usr/bin/security cms -D -i "$PROFILE_PATH" > profile.plist
+          /usr/bin/security cms -D -i "$TMP_PROFILE" > profile.plist
           PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' profile.plist)
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)
           TEAM_ID=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist)
           echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
           echo "TEAM_ID=$TEAM_ID" >> $GITHUB_ENV
+          PROFILE_PATH="$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
+          mv -f "$TMP_PROFILE" "$PROFILE_PATH"
           rm -f profile.plist
 
       - name: Signing diagnostics (safe)
@@ -196,7 +199,7 @@ jobs:
         run: |
           set -e
           APP_PATH="$PWD/build/NeoX2.xcarchive/Products/Applications/NeoX2.app"
-          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
           if [[ -d "$APP_PATH" && -f "$PROFILE_PATH" ]]; then
             cp "$PROFILE_PATH" "$APP_PATH/embedded.mobileprovision"
             echo "Embedded provisioning profile into app bundle"
