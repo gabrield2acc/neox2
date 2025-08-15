@@ -225,12 +225,12 @@ jobs:
       - name: Export IPA
         env:
           TEAM_ID: ${{ env.TEAM_ID }}
-          PROFILE_UUID: ${{ env.PROFILE_UUID }}
-          EMBEDDED_UUID: ${{ env.EMBEDDED_UUID }}
+          PROFILE_NAME: ${{ env.PROFILE_NAME }}
+          EMBEDDED_NAME: ${{ env.EMBEDDED_NAME }}
         run: |
           set -euo pipefail
-          FINAL_PROFILE_UUID="${EMBEDDED_UUID:-$PROFILE_UUID}"
-          if [[ -z "$FINAL_PROFILE_UUID" ]]; then echo "No profile UUID available for export" >&2; exit 1; fi
+          FINAL_PROFILE_NAME="${EMBEDDED_NAME:-$PROFILE_NAME}"
+          if [[ -z "$FINAL_PROFILE_NAME" ]]; then echo "No profile NAME available for export" >&2; exit 1; fi
           cat > ExportOptions.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -245,12 +245,8 @@ jobs:
               <key>
                 ${BUNDLE_ID}
               </key>
-              <string>${FINAL_PROFILE_UUID}</string>
+              <string>${FINAL_PROFILE_NAME}</string>
             </dict>
-            <key>signingCertificate</key>
-            <string>Apple Distribution</string>
-            <key>teamID</key>
-            <string>${TEAM_ID:-}</string>
             <key>uploadSymbols</key>
             <true/>
             <key>compileBitcode</key>
