@@ -196,12 +196,13 @@ jobs:
         run: |
           set -e
           APP_PATH="$PWD/build/NeoX2.xcarchive/Products/Applications/NeoX2.app"
-          PROFILE_PATH=~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-          if [[ -d "$APP_PATH" && -f $PROFILE_PATH ]]; then
-            cp $PROFILE_PATH "$APP_PATH/embedded.mobileprovision"
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
+          if [[ -d "$APP_PATH" && -f "$PROFILE_PATH" ]]; then
+            cp "$PROFILE_PATH" "$APP_PATH/embedded.mobileprovision"
             echo "Embedded provisioning profile into app bundle"
           else
             echo "App path or provisioning profile missing; cannot embed" >&2
+            ls -lah "$HOME/Library/MobileDevice/Provisioning Profiles" || true
           fi
 
       - name: Show codesign entitlements (safe)
