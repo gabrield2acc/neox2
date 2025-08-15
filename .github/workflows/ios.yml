@@ -91,8 +91,9 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Import signing certificate
-        id: import_certs
+      - name: Import signing certificate (primary)
+        id: import_certs_primary
+        if: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE != '' }}
         uses: apple-actions/import-codesign-certs@v2
         with:
           keychain: build.keychain-db
@@ -100,10 +101,23 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
           p12-password: ${{ secrets.CERTIFICATE_PASSWORD }}
 
+      - name: Import signing certificate (fallback)
+        id: import_certs_fallback
+        if: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE == '' && secrets.DIST_CERTIFICATE_P12 != '' }}
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          keychain: build.keychain-db
+          keychain-password: temporary_keychain_password_${{ github.run_id }}
+          p12-file-base64: ${{ secrets.DIST_CERTIFICATE_P12 }}
+          p12-password: ${{ secrets.DIST_CERTIFICATE_PASSWORD }}
+
       - name: Set build keychain as default (codesign)
         run: |
           # Prefer the path provided by the import action, fall back to common location
-          IMPORT_PATH="${{ steps.import_certs.outputs.keychain-path }}"
+          IMPORT_PATH="${{ steps.import_certs_primary.outputs.keychain-path }}"
+          if [[ -z "$IMPORT_PATH" ]]; then
+            IMPORT_PATH="${{ steps.import_certs_fallback.outputs.keychain-path }}"
+          fi
           if [[ -n "$IMPORT_PATH" && -f "$IMPORT_PATH" ]]; then
             KEYCHAIN_PATH="$IMPORT_PATH"
           else
