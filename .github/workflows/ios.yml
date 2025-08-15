@@ -99,6 +99,13 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
           p12-password: ${{ secrets.CERTIFICATE_PASSWORD }}
 
+      - name: Set build keychain as default (codesign)
+        run: |
+          BUILD_KEYCHAIN="$HOME/Library/Keychains/build.keychain-db"
+          security list-keychains -s "$BUILD_KEYCHAIN" || true
+          security default-keychain -s "$BUILD_KEYCHAIN" || true
+          security show-keychain-info "$BUILD_KEYCHAIN" || true
+
       - name: Install Provisioning Profile
         env:
           PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
