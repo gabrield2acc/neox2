@@ -114,6 +114,27 @@ jobs:
           security default-keychain -s "$KEYCHAIN_PATH" || true
           security show-keychain-info "$KEYCHAIN_PATH" || true
 
+      - name: Resolve signing identity from keychain
+        env:
+          TEAM_ID: ${{ env.TEAM_ID }}
+        run: |
+          set -euo pipefail
+          echo "Finding Apple Distribution identity for team $TEAM_ID in $KEYCHAIN_PATH"
+          RAW=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Apple Distribution" | grep -F "$TEAM_ID" | head -n1 || true)
+          if [[ -z "$RAW" ]]; then
+            echo "Falling back to any Apple Distribution identity in keychain"
+            RAW=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Apple Distribution" | head -n1 || true)
+          fi
+          if [[ -z "$RAW" ]]; then
+            echo "No Apple Distribution identity found in keychain" >&2
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+            exit 1
+          fi
+          # Extract the quoted identity label
+          LABEL=$(echo "$RAW" | sed -E 's/.*"(.*)".*/\1/')
+          echo "Detected identity: $LABEL"
+          echo "CI_CODE_SIGN_IDENTITY=$LABEL" >> $GITHUB_ENV
+
       - name: Install Provisioning Profile
         env:
           PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
@@ -163,8 +184,8 @@ jobs:
 
       - name: Archive
         env:
-          CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
-          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+          CODE_SIGN_IDENTITY: ${{ env.CI_CODE_SIGN_IDENTITY }}
+          DEVELOPMENT_TEAM: ${{ env.TEAM_ID }}
         run: |
           set -euo pipefail
           mkdir -p build
