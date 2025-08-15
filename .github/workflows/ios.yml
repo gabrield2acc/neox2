@@ -192,6 +192,25 @@ jobs:
             echo "No embedded.mobileprovision found in archive app bundle" >&2
           fi
 
+      - name: Embed provisioning profile into archive app bundle
+        run: |
+          set -e
+          APP_PATH="$PWD/build/NeoX2.xcarchive/Products/Applications/NeoX2.app"
+          PROFILE_PATH=~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          if [[ -d "$APP_PATH" && -f $PROFILE_PATH ]]; then
+            cp $PROFILE_PATH "$APP_PATH/embedded.mobileprovision"
+            echo "Embedded provisioning profile into app bundle"
+          else
+            echo "App path or provisioning profile missing; cannot embed" >&2
+          fi
+
+      - name: Show codesign entitlements (safe)
+        run: |
+          APP_PATH="$PWD/build/NeoX2.xcarchive/Products/Applications/NeoX2.app"
+          if [[ -d "$APP_PATH" ]]; then
+            /usr/bin/codesign -d --entitlements :- "$APP_PATH" 2>/dev/null || true
+          fi
+
       - name: Export IPA
         env:
           TEAM_ID: ${{ env.TEAM_ID }}
