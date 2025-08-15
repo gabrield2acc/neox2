@@ -59,6 +59,10 @@ jobs:
     needs: [ build ]
     env:
       BUNDLE_ID: net.acloudradius.neox2
+      PRIMARY_P12: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
+      P12_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+      FALLBACK_P12: ${{ secrets.DIST_CERTIFICATE_P12 }}
+      FALLBACK_P12_PASSWORD: ${{ secrets.DIST_CERTIFICATE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -93,23 +97,23 @@ jobs:
 
       - name: Import signing certificate (primary)
         id: import_certs_primary
-        if: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE != '' }}
+        if: ${{ env.PRIMARY_P12 != '' }}
         uses: apple-actions/import-codesign-certs@v2
         with:
           keychain: build.keychain-db
           keychain-password: temporary_keychain_password_${{ github.run_id }}
-          p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
-          p12-password: ${{ secrets.CERTIFICATE_PASSWORD }}
+          p12-file-base64: ${{ env.PRIMARY_P12 }}
+          p12-password: ${{ env.P12_PASSWORD }}
 
       - name: Import signing certificate (fallback)
         id: import_certs_fallback
-        if: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE == '' && secrets.DIST_CERTIFICATE_P12 != '' }}
+        if: ${{ env.PRIMARY_P12 == '' && env.FALLBACK_P12 != '' }}
         uses: apple-actions/import-codesign-certs@v2
         with:
           keychain: build.keychain-db
           keychain-password: temporary_keychain_password_${{ github.run_id }}
-          p12-file-base64: ${{ secrets.DIST_CERTIFICATE_P12 }}
-          p12-password: ${{ secrets.DIST_CERTIFICATE_PASSWORD }}
+          p12-file-base64: ${{ env.FALLBACK_P12 }}
+          p12-password: ${{ env.FALLBACK_P12_PASSWORD }}
 
       - name: Set build keychain as default (codesign)
         run: |
