@@ -109,10 +109,10 @@ jobs:
           TMP_PROFILE="$PROFILE_DIR/profile.mobileprovision"
           # Support base64 or raw .mobileprovision in the secret
           if echo "$PROVISIONING_PROFILE" | base64 -d > "$TMP_PROFILE" 2>/dev/null; then
-            echo "Decoded base64 provisioning profile to $PROFILE_PATH"
+            echo "Decoded base64 provisioning profile to $TMP_PROFILE"
           else
             echo "$PROVISIONING_PROFILE" > "$TMP_PROFILE"
-            echo "Wrote raw provisioning profile to $PROFILE_PATH"
+            echo "Wrote raw provisioning profile to $TMP_PROFILE"
           fi
           /usr/bin/security cms -D -i "$TMP_PROFILE" > profile.plist
           PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' profile.plist)
