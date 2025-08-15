@@ -171,6 +171,21 @@ jobs:
           fi
           test -d "$PWD/build/NeoX2.xcarchive"
 
+      - name: Inspect archive provisioning profile (safe)
+        run: |
+          APP_PATH="$PWD/build/NeoX2.xcarchive/Products/Applications/NeoX2.app"
+          if [[ -f "$APP_PATH/embedded.mobileprovision" ]]; then
+            /usr/bin/security cms -D -i "$APP_PATH/embedded.mobileprovision" > embedded.plist || true
+            echo "Archive embedded profile info:"
+            /usr/libexec/PlistBuddy -c 'Print :Name' embedded.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c 'Print :UUID' embedded.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' embedded.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' embedded.plist 2>/dev/null || true
+            rm -f embedded.plist
+          else
+            echo "No embedded.mobileprovision found in archive app bundle" >&2
+          fi
+
       - name: Export IPA
         run: |
           set -euo pipefail
@@ -180,7 +195,7 @@ jobs:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>app-store-connect</string>
+            <string>app-store</string>
             <key>signingStyle</key>
             <string>manual</string>
             <key>provisioningProfiles</key>
@@ -188,8 +203,12 @@ jobs:
               <key>
                 ${BUNDLE_ID}
               </key>
-              <string>${PROFILE_UUID}</string>
+              <string>${PROFILE_NAME}</string>
             </dict>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>teamID</key>
+            <string>${TEAM_ID:-}</string>
             <key>uploadSymbols</key>
             <true/>
             <key>compileBitcode</key>
