@@ -92,6 +92,7 @@ jobs:
         run: xcodegen generate
 
       - name: Import signing certificate
+        id: import_certs
         uses: apple-actions/import-codesign-certs@v2
         with:
           keychain: build.keychain-db
@@ -101,10 +102,17 @@ jobs:
 
       - name: Set build keychain as default (codesign)
         run: |
-          BUILD_KEYCHAIN="$HOME/Library/Keychains/build.keychain-db"
-          security list-keychains -s "$BUILD_KEYCHAIN" || true
-          security default-keychain -s "$BUILD_KEYCHAIN" || true
-          security show-keychain-info "$BUILD_KEYCHAIN" || true
+          # Prefer the path provided by the import action, fall back to common location
+          IMPORT_PATH="${{ steps.import_certs.outputs.keychain-path }}"
+          if [[ -n "$IMPORT_PATH" && -f "$IMPORT_PATH" ]]; then
+            KEYCHAIN_PATH="$IMPORT_PATH"
+          else
+            KEYCHAIN_PATH="$HOME/Library/Keychains/build.keychain-db"
+          fi
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+          security list-keychains -s "$KEYCHAIN_PATH" || true
+          security default-keychain -s "$KEYCHAIN_PATH" || true
+          security show-keychain-info "$KEYCHAIN_PATH" || true
 
       - name: Install Provisioning Profile
         env:
@@ -158,45 +166,24 @@ jobs:
           CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           mkdir -p build
-          BUILD_KEYCHAIN="$HOME/Library/Keychains/build.keychain-db"
-          echo "Before: default keychain:" && security default-keychain || true
-          security default-keychain -s "$BUILD_KEYCHAIN" || true
-          echo "After: default keychain:" && security default-keychain || true
-          if command -v xcpretty >/dev/null 2>&1; then
-            xcodebuild -project NeoX2.xcodeproj \
-              -scheme NeoX2 \
-              -configuration Release \
-              -archivePath "$PWD/build/NeoX2.xcarchive" \
-              -destination 'generic/platform=iOS' \
-              -allowProvisioningUpdates \
-              CODE_SIGN_STYLE=Manual \
-              CODE_SIGNING_ALLOWED=YES \
-              CODE_SIGNING_REQUIRED=YES \
-              OTHER_CODE_SIGN_FLAGS="--keychain $BUILD_KEYCHAIN" \
-              DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
-              CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-              PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
-              PROVISIONING_PROFILE="$PROFILE_UUID" \
-              clean archive | xcpretty
-          else
-            xcodebuild -project NeoX2.xcodeproj \
-              -scheme NeoX2 \
-              -configuration Release \
-              -archivePath "$PWD/build/NeoX2.xcarchive" \
-              -destination 'generic/platform=iOS' \
-              -allowProvisioningUpdates \
-              CODE_SIGN_STYLE=Manual \
-              CODE_SIGNING_ALLOWED=YES \
-              CODE_SIGNING_REQUIRED=YES \
-              OTHER_CODE_SIGN_FLAGS="--keychain $BUILD_KEYCHAIN" \
-              DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
-              CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-              PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
-              PROVISIONING_PROFILE="$PROFILE_UUID" \
-              clean archive
-          fi
+          echo "Default keychain now:" && security default-keychain || true
+          xcodebuild -project NeoX2.xcodeproj \
+            -scheme NeoX2 \
+            -configuration Release \
+            -archivePath "$PWD/build/NeoX2.xcarchive" \
+            -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGNING_REQUIRED=YES \
+            OTHER_CODE_SIGN_FLAGS="--keychain ${KEYCHAIN_PATH}" \
+            DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            clean archive
           test -d "$PWD/build/NeoX2.xcarchive"
 
       - name: Inspect archive provisioning profile (safe)
