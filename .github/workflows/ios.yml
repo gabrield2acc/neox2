@@ -149,24 +149,32 @@ jobs:
             rm -f profile.plist
           done
 
+      - name: Show build settings (Release)
+        run: |
+          xcodebuild -project NeoX2.xcodeproj -scheme NeoX2 -configuration Release -showBuildSettings | sed -n '1,200p'
+
       - name: Archive
         env:
           CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
-          set -euo pipefail
+          set -euxo pipefail
           mkdir -p build
-          echo "Default keychain:" && security default-keychain || true
+          BUILD_KEYCHAIN="$HOME/Library/Keychains/build.keychain-db"
+          echo "Before: default keychain:" && security default-keychain || true
+          security default-keychain -s "$BUILD_KEYCHAIN" || true
+          echo "After: default keychain:" && security default-keychain || true
           if command -v xcpretty >/dev/null 2>&1; then
             xcodebuild -project NeoX2.xcodeproj \
               -scheme NeoX2 \
               -configuration Release \
               -archivePath "$PWD/build/NeoX2.xcarchive" \
               -destination 'generic/platform=iOS' \
+              -allowProvisioningUpdates \
               CODE_SIGN_STYLE=Manual \
               CODE_SIGNING_ALLOWED=YES \
               CODE_SIGNING_REQUIRED=YES \
-              OTHER_CODE_SIGN_FLAGS="--keychain $(security default-keychain | tr -d '"')" \
+              OTHER_CODE_SIGN_FLAGS="--keychain $BUILD_KEYCHAIN" \
               DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
               CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
               PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
@@ -178,10 +186,11 @@ jobs:
               -configuration Release \
               -archivePath "$PWD/build/NeoX2.xcarchive" \
               -destination 'generic/platform=iOS' \
+              -allowProvisioningUpdates \
               CODE_SIGN_STYLE=Manual \
               CODE_SIGNING_ALLOWED=YES \
               CODE_SIGNING_REQUIRED=YES \
-              OTHER_CODE_SIGN_FLAGS="--keychain $(security default-keychain | tr -d '"')" \
+              OTHER_CODE_SIGN_FLAGS="--keychain $BUILD_KEYCHAIN" \
               DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
               CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
               PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
